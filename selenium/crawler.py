@@ -1,5 +1,6 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+import code_saver
 import time
 import credential
 
@@ -17,8 +18,9 @@ def login(browser):
 def find_accepted_submissions(browser):
 
     browser.get(SUBMIT_PAGE_URL)
+    time.sleep(0.5)
     while True:
-        accepted_submissions = browser.find_element_by_link_text('Accepted')
+        accepted_submissions = browser.find_elements_by_link_text('Accepted')
         try:
             next_page = browser.find_element_by_partial_link_text('Older')
         except: #NoSuchElementException
@@ -27,6 +29,7 @@ def find_accepted_submissions(browser):
             yield link.get_attribute('href')
         if next_page:
             next_page.click()
+            time.sleep(1)
 
 def open_new_tab(browser):
     browser.execute_script('''window.open("about:blank","_blank");''')
@@ -34,19 +37,27 @@ def open_new_tab(browser):
 def open_ac_submission_page(browser,url):
     browser.switch_to_window(browser.window_handles[1])
     browser.get(url)
+    problem_name = browser.find_element_by_xpath('//*[@id="submission-app"]/div/div[1]/h4/a')
+    code = browser.find_element_by_xpath('//*[@id="ace"]/div/div[3]/div/div[3]')
+    language = browser.find_element_by_xpath('//*[@id="result_language"]')
+    data = {"problem_name":problem_name.text,
+            "language":language.text,
+            "code":code.text}
     browser.switch_to_window(browser.window_handles[0])
-
-
+    return data
+    
 
 browser = webdriver.Firefox()
+saver = code_saver.CodeSaver()
 open_new_tab(browser)
 browser.switch_to_window(browser.window_handles[0])
 login(browser)
 time.sleep(2)
 for url in find_accepted_submissions(browser):
-#     open_ac_submission_page(url)
-     time.sleep(0.5)
+     data = open_ac_submission_page(browser,url)
+     saver.saveInstance(data)
+     time.sleep(1)
 
 
-
-#browser.quit()
+browser.close()
+browser.quit()
