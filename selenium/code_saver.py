@@ -12,7 +12,9 @@ class CodeSaver:
             file_name = SAVE_DIR + "/" + problem + self.extension[data['language']]
             fp = open(file_name,"w")
             fp.write(data['code'])
+            fp.close()
             
+
 
 
 
